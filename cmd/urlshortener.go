@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/urfave/cli"
 	"io/ioutil"
@@ -17,24 +16,24 @@ var URLShortener = cli.Command{
 	Name:   "urlshortener",
 	Usage:  "Run a server to shorten URLs",
 	Action: runURLShortener,
+	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name: "filepath",
+			Value: "",
+			Usage: "path to the file holding redirect configuration",
+		},
+	},
 }
 
 func runURLShortener(ctx *cli.Context) error {
 
-	flags := flag.NewFlagSet("urlshortener", flag.PanicOnError)
+	fp := ctx.String("filepath")
 
-	filepath := flags.String("filepath", "", "path to the file holding redirect configuration")
-
-	err := flags.Parse(ctx.Args())
-	if err != nil {
-		return err
-	}
-
-	if *filepath == "" {
+	if fp == "" {
 		return errors.New("-filepath argument must be specified")
 	}
 
-	f, err := os.Open(*filepath)
+	f, err := os.Open(fp)
 	if err != nil {
 		return err
 	}
