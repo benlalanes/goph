@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/urfave/cli"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/benlalanes/goph/internal/urlshortener"
 )
@@ -27,16 +30,28 @@ func runURLShortener(ctx *cli.Context) error {
 		return err
 	}
 
-	fmt.Println(*filepath)
-
-	m := map[string]string{"/google": "https://google.com"}
-	fb := func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintln(w, "Redirect for specified path was not found.")
+	if *filepath == "" {
+		return errors.New("-filepath argument must be specified")
 	}
 
-	log.Fatal(http.ListenAndServe("localhost:8080", urlshortener.MapHandler(m,
-		http.HandlerFunc(fb))))
+	f, err := os.Open(*filepath)
+	if err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+
+	fb := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = fmt.Fprintln(w, "Redirect for specified path was not found.")
+	}
+
+	handler, err := urlshortener.YAMLHandler(b, http.HandlerFunc(fb))
+
+	log.Fatal(http.ListenAndServe("localhost:8080", handler))
 
 	return nil
 
