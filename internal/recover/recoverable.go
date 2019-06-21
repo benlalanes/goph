@@ -1,10 +1,11 @@
-package panic_recover
+package recover
 
 import (
 	"bytes"
 	"fmt"
 	"io"
 	"net/http"
+	"runtime/debug"
 )
 
 type Recoverable struct {
@@ -43,7 +44,8 @@ func (r *Recoverable) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if rec := recover(); rec != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = fmt.Fprint(w, "Something went wrong.")
+			_, _ = fmt.Fprintln(w, "Something went wrong:")
+			_, _ = fmt.Fprintln(w, debug.Stack())
 		}
 
 		r.buf.Reset()
