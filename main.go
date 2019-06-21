@@ -13,6 +13,8 @@ func main() {
 
 	app.Commands = []cli.Command{
 		cmd.URLShortener,
+		cmd.Link,
+		cmd.Task,
 	}
 
 	err := app.Run(os.Args)

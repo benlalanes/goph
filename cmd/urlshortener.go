@@ -18,7 +18,7 @@ var URLShortener = cli.Command{
 	Action: runURLShortener,
 	Flags: []cli.Flag{
 		cli.StringFlag{
-			Name: "filepath",
+			Name:  "filepath",
 			Value: "",
 			Usage: "path to the file holding redirect configuration",
 		},
