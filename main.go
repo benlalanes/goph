@@ -15,6 +15,7 @@ func main() {
 		cmd.URLShortener,
 		cmd.Link,
 		cmd.Task,
+		cmd.RecoverChromaDemo,
 	}
 
 	err := app.Run(os.Args)

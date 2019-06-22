@@ -1,14 +1,13 @@
-package recover
+package recover_chroma
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
-	"runtime/debug"
 )
 
 type Recoverable struct {
+	action func(w http.ResponseWriter, r *http.Request)
 	buf *bytes.Buffer
 	handler http.Handler
 	header http.Header
@@ -27,9 +26,10 @@ func (r *Recoverable) WriteHeader(statusCode int) {
 	r.statusCode = statusCode
 }
 
-func NewRecoverable(handler http.Handler) *Recoverable {
+func NewRecoverable(handler http.Handler, action func(w http.ResponseWriter, r *http.Request)) *Recoverable {
 
 	return &Recoverable{
+		action: action,
 		buf: &bytes.Buffer{},
 		handler: handler,
 		header: make(http.Header),
@@ -43,9 +43,29 @@ func (r *Recoverable) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// status code, and display error message.
 	defer func() {
 		if rec := recover(); rec != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = fmt.Fprintln(w, "Something went wrong, stack trace is:")
-			_, _ = w.Write(debug.Stack())
+
+			r.action(w, req)
+			//w.WriteHeader(http.StatusInternalServerError)
+			//_, _ = fmt.Fprintln(w, "Something went wrong, stack trace is:")
+			//
+			//stack := debug.Stack()
+			//
+			//lines := strings.Split(string(stack), "\t")
+			//
+			//for _, line := range lines {
+			//	parts := strings.Split(line, " ")
+			//
+			//	lastColon := strings.LastIndex(parts[0], ":")
+			//
+			//	if lastColon != -1 {
+			//		absPath, lineNum := parts[0][:lastColon], parts[0][lastColon+1:]
+			//		fmt.Println(absPath, lineNum)
+			//	}
+			//
+			//}
+			//
+			//_, _ = w.Write(stack)
+
 		}
 
 		r.buf.Reset()
